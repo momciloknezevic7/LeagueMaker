@@ -1,4 +1,5 @@
 import psycopg2
+import pandas as pd
 
 
 conn = None
@@ -31,22 +32,37 @@ def create_table():
 
 
 def load_teams():
-    pass
+    df = pd.read_csv("DataInput/formResult.csv")
+    teams = []
+    '''
+    Google Form Format (saved as .csv file):
+        Timestamp, TeamName, Player1Name, Player2Name, ...
+    
+        NOTE: For this use, team has only 2 players.
+              If necessary, there can be more players. Their names will be placed after Team name.
+    '''
+    for row in range(len(df)):
+        team_name = df.iloc[row][1]
+        team_members = ", ".join(df.iloc[row][2:])  # Player1, Player2, Player3...
+        teams.append((team_name, team_members))
+
+    add_teams_in_database(teams)
 
 
-def add_new_team(name, members):
+def add_teams_in_database(teams):
     command = """
             INSERT INTO Team(name, members) 
             VALUES(%s, %s);
             """
 
-    # cur.executemany(command, team_list)
+    cur.executemany(command, teams)
     # team list [(name1,members1), (name2,members2)...]
-    cur.execute(command, (name, members))
+    # cur.execute(command, (name, members))
 
 
 if __name__ == '__main__':
     print("Creating database...")
+
     try:
         # connect to the Postgresql server
         conn = psycopg2.connect(
@@ -60,6 +76,9 @@ if __name__ == '__main__':
         delete_table()
         create_table()
 
+        # Get data from Google Form and put it in database
+        load_teams()
+
         # close communication with the Postgresql database server
         cur.close()
 
@@ -71,3 +90,4 @@ if __name__ == '__main__':
         if conn is not None:
             conn.close()
     print("DONE!")
+
