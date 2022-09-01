@@ -1,3 +1,12 @@
+# Folder that contains file for every fixture
+Fixtures
+
+# Folder that contains files from Fixtures filled with results
+Results
+
+# Data from Google Form
+DataInput/formResult.csv
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
