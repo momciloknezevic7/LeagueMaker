@@ -1,15 +1,47 @@
 import psycopg2
+import itertools
 import pandas as pd
-
 
 conn = None
 cur = None
 
 
+def connect_to_database():
+    global conn
+    global cur
+
+    print("Connecting to database...")
+    try:
+        # connect to the Postgresql server
+        conn = psycopg2.connect(
+            dbname='IbisLeague',
+            user='postgres',
+            password='momcilo',
+            port='5433'
+        )
+        cur = conn.cursor()
+    except(Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    print("Connected to database!")
+
+
+def disconnect_from_database():
+    print("Disconnecting from database...")
+    try:
+        # close communication with the Postgresql database server
+        cur.close()
+
+        # commit the changes
+        conn.commit()
+    except(Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    print("Disconnected from database!")
+
+
 def delete_table():
     command = """
             DROP TABLE IF EXISTS Team CASCADE;
-        """
+    """
 
     cur.execute(command)
 
@@ -20,13 +52,14 @@ def create_table():
                 team_id         SERIAL PRIMARY KEY,
                 name            VARCHAR(50) NOT NULL,
                 members         VARCHAR(255) NOT NULL,
+                played          INT DEFAULT 0,
                 won             INT DEFAULT 0,
                 drawn           INT DEFAULT 0,
                 lost            INT DEFAULT 0,
                 goal_diff       INT DEFAULT 0,
                 points          INT DEFAULT 0
             );
-        """
+    """
 
     cur.execute(command)
 
@@ -46,6 +79,7 @@ def load_teams():
         team_members = ", ".join(df.iloc[row][2:])  # Player1, Player2, Player3...
         teams.append((team_name, team_members))
 
+    print("Teams are loaded from csv file!")
     add_teams_in_database(teams)
 
 
@@ -53,31 +87,36 @@ def add_teams_in_database(teams):
     command = """
             INSERT INTO Team(name, members) 
             VALUES(%s, %s);
-            """
+    """
 
+    # teams = [(name1,members1), (name2,members2)...]
     cur.executemany(command, teams)
-    # team list [(name1,members1), (name2,members2)...]
-    # cur.execute(command, (name, members))
+    print("Teams are added to database!")
+
+
+def get_names():
+    command = """
+        SELECT name
+        FROM team;
+    """
+
+    cur.execute(command)
+    teams = cur.fetchall()
+
+    return list(itertools.chain(*teams))
 
 
 if __name__ == '__main__':
-    print("Creating database...")
 
     try:
-        # connect to the Postgresql server
-        conn = psycopg2.connect(
-            dbname='IbisLeague',
-            user='postgres',
-            password='momcilo',
-            port='5433'
-        )
-        cur = conn.cursor()
+        connect_to_database()
 
         delete_table()
         create_table()
 
         # Get data from Google Form and put it in database
         load_teams()
+        get_names()
 
         # close communication with the Postgresql database server
         cur.close()
@@ -90,4 +129,3 @@ if __name__ == '__main__':
         if conn is not None:
             conn.close()
     print("DONE!")
-

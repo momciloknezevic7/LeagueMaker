@@ -52,3 +52,8 @@ def create_fixture_file(gw, fixture):
     file.write("\n" + fixtureFooter)
     file.close()
     print("DONE!")
+
+
+def parse_last_fixture():
+    pass
+    # TODO
