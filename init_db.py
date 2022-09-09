@@ -106,6 +106,38 @@ def get_names():
     return list(itertools.chain(*teams))
 
 
+def add_draw(team1, team2):
+    command = """
+        UPDATE Team
+        SET played = COALESCE((played, 0) + 1, 
+            drawn = COALESCE(drawn, 0) + 1,
+            points = COALESCE(points, 0) + 1
+        WHERE name = %s OR name = %s;  
+    """
+    cur.execute(command, (team1, team2))
+
+
+def add_win_and_loose(team1, team2, goal_diff):
+    command_winner = '''
+            UPDATE Team
+            SET played = COALESCE(played, 0) + 1, 
+                won = COALESCE(won, 0) + 1,
+                goal_diff = COALESCE(goal_diff, 0) + %s,
+                points = COALESCE(points, 0) + 3
+            WHERE name = %s     
+    '''
+    cur.execute(command_winner, (goal_diff, team1))
+
+    command_looser = '''
+            UPDATE Team
+            SET played = COALESCE(played,0) + 1, 
+                lost = COALESCE(lost, 0) + 1,
+                goal_diff = COALESCE(goal_diff, 0) - %s
+            WHERE name = %s 
+    '''
+    cur.execute(command_looser, (goal_diff, team2))
+
+
 if __name__ == '__main__':
 
     try:

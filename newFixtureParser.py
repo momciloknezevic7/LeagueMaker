@@ -1,2 +1,2 @@
 # Use this file only for parsing last fixture file
-# TODO
+from fixturesLib import parse_last_fixture
