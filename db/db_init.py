@@ -2,8 +2,15 @@ import psycopg2
 import itertools
 import pandas as pd
 
+
 conn = None
 cur = None
+
+# DB Info
+dbname = 'IbisLeague'
+user = 'postgres'
+password = 'momcilo'
+port = '5433'
 
 
 def connect_to_database():
@@ -14,10 +21,10 @@ def connect_to_database():
     try:
         # connect to the Postgresql server
         conn = psycopg2.connect(
-            dbname='IbisLeague',
-            user='postgres',
-            password='momcilo',
-            port='5433'
+            dbname=dbname,
+            user=user,
+            password=password,
+            port=port
         )
         cur = conn.cursor()
     except(Exception, psycopg2.DatabaseError) as error:
@@ -65,7 +72,7 @@ def create_table():
 
 
 def load_teams():
-    df = pd.read_csv("DataInput/formResult.csv")
+    df = pd.read_csv("../DataInput/formResult.csv")
     teams = []
     '''
     Google Form Format (saved as .csv file):
@@ -138,17 +145,27 @@ def add_win_and_loose(team1, team2, goal_diff):
     cur.execute(command_looser, (goal_diff, team2))
 
 
+def get_standings():
+    command = '''
+            SELECT name, played, won, drawn, lost, goal_diff, points
+            FROM team
+            ORDER BY points DESC, goal_diff DESC;
+    '''
+
+    cur.execute(command)
+    standings = cur.fetchall()
+
+    return standings
+
+
+# Run this file for inserting data from csv file
 if __name__ == '__main__':
 
     try:
         connect_to_database()
 
-        delete_table()
-        create_table()
-
         # Get data from Google Form and put it in database
         load_teams()
-        get_names()
 
         # close communication with the Postgresql database server
         cur.close()
@@ -160,4 +177,4 @@ if __name__ == '__main__':
     finally:
         if conn is not None:
             conn.close()
-    print("DONE!")
+    print("Data has been inserted in database!")

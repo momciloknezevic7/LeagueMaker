@@ -1,5 +1,5 @@
-from fixturesLib import generate_fixtures, create_fixture_file
-from init_db import connect_to_database, get_names, disconnect_from_database
+from fixtures_lib import generate_fixtures, create_fixture_file
+from db.db_init import connect_to_database, get_names, disconnect_from_database
 
 if __name__ == "__main__":
 

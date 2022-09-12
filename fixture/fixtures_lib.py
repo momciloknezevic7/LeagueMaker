@@ -1,13 +1,14 @@
 import os
 import shutil
-from init_db import connect_to_database, add_draw, add_win_and_loose, disconnect_from_database
+from tabulate import tabulate
+from db.db_init import add_draw, add_win_and_loose, get_standings
 
 teamBreak = "This team doesn't have match in this fixture"
 fixtureHeader = "----------------------------------------GAME WEEK "
 fixtureFooter = "--------------------------------------------------"
 
-unreadFixtures = "Results/LastUnread Fixture/"
-readoutFixtures = "Results/ReadOut Fixtures/"
+unreadFixtures = "../Results/Unread Fixtures/"
+readoutFixtures = "../Results/ReadOut Fixtures/"
 
 
 def generate_fixtures(input_teams, rematch_ind):
@@ -36,16 +37,23 @@ def generate_fixtures(input_teams, rematch_ind):
         matches = []
         return_matches = []
 
-    print("DONE!")
     return all_fixtures
 
 
+# Fixture for matches that were not played in their schedule
+def create_blank_fixture():
+    filename = "../Fixtures/fixturesGameWeek_outOfSchedule"
+    file = open(filename, "w")
+    file.write(fixtureHeader + "\n" * 2)
+    file.close()
+
+
 def create_fixture_file(gw, fixture):
-    print("Creating file for each fixture...")
+    print("Creating file for fixture gameweek " + str(gw))
 
     # input [('Team1', 'Team5'), ('Day off', 'Team4'), ('Team2', 'Team3')]
     # create file with name fixturesGameWeek[gw]
-    filename = "Fixtures/fixturesGameWeek" + str(gw)
+    filename = "../Fixtures/fixturesGameWeek" + str(gw)
     file = open(filename, "w")
     file.write(fixtureHeader + str(gw) + "\n" * 2)
 
@@ -58,6 +66,8 @@ def create_fixture_file(gw, fixture):
 
     file.write("\n" + fixtureFooter)
     file.close()
+
+    create_blank_fixture()
     print("DONE!")
 
 
@@ -95,18 +105,29 @@ def parse_fixture(file):
         teams = [team.strip() for team in teams]
 
         result = teams_and_result[1].split(":")
-        result = [int(goals.strip()) for goals in result]
+        result = [goals.strip() for goals in result]
 
-        if result[0] == result[1]:
-            add_draw(teams[0], teams[1])
-        elif result[0] > result[1]:
-            add_win_and_loose(teams[0], teams[1], result[0]-result[1])
+        if '__' in result:
+            blank_file = open("../Fixtures/fixturesGameWeek_outOfSchedule", "a")
+            blank_file.write(curr_match + "\n")
         else:
-            add_win_and_loose(teams[1], teams[0], result[1]-result[0])
+            result = [int(goals) for goals in result]
+            if result[0] == result[1]:
+                add_draw(teams[0], teams[1])
+            elif result[0] > result[1]:
+                add_win_and_loose(teams[0], teams[1], result[0]-result[1])
+            else:
+                add_win_and_loose(teams[1], teams[0], result[1]-result[0])
 
 
-# FOR TESTING
-if __name__ == '__main__':
-    connect_to_database()
-    parse_unread_fixtures()
-    disconnect_from_database()
+def print_standings():
+    col_names = ["Team", "Played", "Won", "Drawn", "Lost", "Goal diff", "Points"]
+    data = get_standings()
+    row_indices = list(range(1, len(data)+1))
+
+    # stdout standings
+    print(tabulate(data, headers=col_names, tablefmt="fancy_grid", showindex=row_indices))
+
+    # file standings
+    with open("../Results/liveStandings", "w") as file:
+        file.write(tabulate(data, headers=col_names, showindex=row_indices))
