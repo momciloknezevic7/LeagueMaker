@@ -129,5 +129,5 @@ def print_standings():
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid", showindex=row_indices))
 
     # file standings
-    with open("../Results/liveStandings", "w") as file:
+    with open("../Results/liveStandings.txt", "w") as file:
         file.write(tabulate(data, headers=col_names, showindex=row_indices))
