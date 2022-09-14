@@ -11,4 +11,4 @@ if __name__ == '__main__':
 
     disconnect_from_database()
 
-    print("DATABASE HAS BEEN RESET!")
+    print("DATABASE IS READY!")

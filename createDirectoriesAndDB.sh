@@ -9,5 +9,8 @@
 
 # Directory where user will store fixtures file after putting result in it 
 [ ! -d Results ] && mkdir -p Results
-[ ! -d 'Fixtures/ReadOut Fixtures' ] && mkdir -p 'Fixtures/ReadOut Fixtures'
-[ ! -d 'Fixtures/Unread Fixtures' ] && mkdir -p 'Fixtures/Unread Fixtures'
+[ ! -d 'Results/ReadOut Fixtures' ] && mkdir -p 'Results/ReadOut Fixtures'
+[ ! -d 'Results/Unread Fixtures' ] && mkdir -p 'Results/Unread Fixtures'
+
+# Creating database
+python db/db_reset.py 

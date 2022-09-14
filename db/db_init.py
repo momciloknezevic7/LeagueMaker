@@ -172,9 +172,10 @@ if __name__ == '__main__':
 
         # commit the changes
         conn.commit()
+
+        print("Data has been inserted in database!")
     except(Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
         if conn is not None:
             conn.close()
-    print("Data has been inserted in database!")
